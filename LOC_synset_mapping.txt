@@ -132,7 +132,7 @@ n02007558 flamingo
 n02009229 little blue heron, Egretta caerulea
 n02009912 American egret, great white heron, Egretta albus
 n02011460 bittern
-n02012849 crane
+n02012849 crane_bird
 n02013706 limpkin, Aramus pictus
 n02017213 European gallinule, Porphyrio porphyrio
 n02018207 American coot, marsh hen, mud hen, water hen, Fulica americana
@@ -636,8 +636,8 @@ n03697007 lumbermill, sawmill
 n03706229 magnetic compass
 n03709823 mailbag, postbag
 n03710193 mailbox, letter box
-n03710637 maillot
-n03710721 maillot, tank suit
+n03710637 maillot_1
+n03710721 maillot_2, tank suit
 n03717622 manhole cover
 n03720891 maraca
 n03721384 marimba, xylophone
