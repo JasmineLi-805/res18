@@ -45,7 +45,7 @@ def create_dataset_file(directory, id2idx, save_path):
             output_file.write(out)
     output_file.close()
 
-def __main__():
+if __name__ == "__main__":
     print('start processing class id mapping')
     id2idx = read_and_save_mapping(MAPPING_PATH, MAPPING_SAVE_PATH)
     print('complete')
@@ -64,4 +64,3 @@ def __main__():
 
     print('ALL COMPLETED')
 
-        
