@@ -5,13 +5,12 @@
 #   - cls_mapping.txt: the mapping between cls_index, cls_id, cls_name
 
 import os
+import random
 cwd = os.getcwd()
 
 MAPPING_PATH = os.path.join(cwd, 'LOC_synset_mapping.txt')
 MAPPING_SAVE_PATH = os.path.join(cwd, 'cls_mapping.txt')
 TRAIN_DIR = os.path.join(cwd, 'ILSVRC/Data/CLS-LOC/train/')
-VAL_DIR = os.path.join(cwd, 'ILSVRC/Data/CLS-LOC/val/')
-TEST_DIR = os.path.join(cwd, 'ILSVRC/Data/CLS-LOC/test/')
 
 def read_and_save_mapping(read_path, write_path):
     id2idx = {}
@@ -33,8 +32,15 @@ def read_and_save_mapping(read_path, write_path):
     
     return id2idx
 
-def create_dataset_file(directory, id2idx, save_path):
-    output_file = open(save_path, 'w')
+def create_dataset_file(directory, id2idx, trpath, vpath, tepath):
+    train_file = open(trpath, 'w')
+    val_file = open(vpath, 'w')
+    test_file = open(tepath, 'w')
+
+    total = 0
+    train_cnt = 0
+    test_cnt = 0
+    val_cnt = 0
     for id in id2idx:
         cls_dir = os.path.join(directory, id)
         assert os.path.isdir(cls_dir)
@@ -42,25 +48,36 @@ def create_dataset_file(directory, id2idx, save_path):
             img_path = os.path.join(cls_dir, filename)
             label = id2idx[id]
             out = f'{img_path}\t{label}\n'
-            output_file.write(out)
-    output_file.close()
+            # partition the image into train/val/test set
+            r = random.randint(1, 10)
+            if r <= 7:
+                train_file.write(out)
+                train_cnt += 1
+            elif r <= 9:
+                val_file.write(out)
+                val_cnt += 1
+            else:
+                test_file.write(out)
+                test_cnt += 1
+            total += 1
+    print(f'total images={total}')
+    print(f'train images={train_cnt}')
+    print(f'val images={val_cnt}')
+    print(f'test images={test_cnt}')
+    train_file.close()
+    val_file.close()
+    test_file.close()
 
 if __name__ == "__main__":
     print('start processing class id mapping')
     id2idx = read_and_save_mapping(MAPPING_PATH, MAPPING_SAVE_PATH)
     print('complete')
 
-    print('creating training data file')
+    print('creating data file')
     train_file_path = os.path.join(cwd, 'ILSVRC', 'train.txt')
-    create_dataset_file(TRAIN_DIR, id2idx, train_file_path)
-
-    print('creating validation data file')
     val_file_path = os.path.join(cwd, 'ILSVRC', 'val.txt')
-    create_dataset_file(VAL_DIR, id2idx, val_file_path)
-
-    print('creating test data file')
     test_file_path = os.path.join(cwd, 'ILSVRC', 'test.txt')
-    create_dataset_file(TEST_DIR, id2idx, test_file_path)
+    create_dataset_file(TRAIN_DIR, id2idx, train_file_path, val_file_path, test_file_path)
 
     print('ALL COMPLETED')
 
