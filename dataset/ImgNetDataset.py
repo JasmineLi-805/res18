@@ -34,5 +34,5 @@ class ImgNetTextLineDataset(Dataset):
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         dim = (256, 256)
         img = cv2.resize(img, dim)
-        img = np.moveaxis(img, 0, -1)
+        img = np.moveaxis(img, -1, 0)
         return {'img': img, 'label': trans}
