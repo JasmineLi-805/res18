@@ -32,4 +32,6 @@ class ImgNetTextLineDataset(Dataset):
         # read img
         img = cv2.imread(img_path)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        dim = (256, 256)
+        img = cv2.resize(img, dim)
         return {'img': img, 'label': trans}
