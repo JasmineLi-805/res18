@@ -6,14 +6,17 @@ VERBOSE = True
 
 import numpy as np
 import tqdm
+import timm
 import torch
 from torch import nn
-
+from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 import cv2
 
+from dataset.ImgNetDataset import ImgNetTextLineDataset
+
 class ModelLoader:
-    def __init__(self, model, batch_size=16):
+    def __init__(self, model):
         self.model = model
 
         self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
@@ -21,7 +24,6 @@ class ModelLoader:
         self.model.eval()
 
         self.process = None # data preprocessing
-        self.batch_size = batch_size
 
     def predict(self, dataloader):
         if VERBOSE:
@@ -34,7 +36,6 @@ class ModelLoader:
                 if len(batch_data['label']) == 0:
                     print(f'batch_data[label] has length 0')
                     continue
-                
                 output = self.model(batch_data['img'].to(self.device))
                 output = torch.nn.functional.softmax(output[0], dim=0)
                 output = output.cpu().numpy()
@@ -44,9 +45,9 @@ class ModelLoader:
         return images, predictions, labels
 
 def build_eval_dataloader(file_path, eval_config):
-    eval_config['dataset']['file'] = file_path
-    eval_config['dataset']['alphabet'] = os.getcwd() + '/ccpd-data/dictionary.txt'
-    eval_loader = build_dataloader(eval_config)
+    dataset = ImgNetTextLineDataset(file_path)
+    assert len(dataset) > 0
+    eval_loader = DataLoader(dataset, batch_size=16, shuffle=False)
     return eval_loader
 
 def get_stats(pred, data, output_dir=None):
@@ -88,64 +89,23 @@ def init_args():
     return args
 
 if __name__ == '__main__':
-    args = init_args()
+    # args = init_args()
     if VERBOSE:
         print(f'loading model...')
-    model = RecInfer(args.model_path)
+    model = timm.create_model('resnet18', pretrained=True)
+    model.eval()
+    model = ModelLoader(model)
+
     print(f'building dataloader')
-    loader = build_eval_dataloader(args.data_info, model.data_config)
+    dataset_file = os.path.join(os.getcwd(), 'ILSVRC', 'val.txt')
+    eval_config = {
+        'batch_size': 1,
+        'shuffle': False
+    }
+    loader = build_eval_dataloader(dataset_file, eval)
 
     images, out, labels = model.predict(loader)
     out = [p[0][0] for p in out]
-    stats = get_stats(out, {'labels': labels, 'images': images}, output_dir=args.output_dir)
+    stats = get_stats(out, {'labels': labels, 'images': images}, output_dir=None)
     accuracy = stats['accuracy']
     print(f'\ntotal # of images to predict: {len(labels)}; accuracy: {accuracy}')
-
-
-    # data_info = '/Users/jasmineli/Desktop/PytorchOCR/ccpd-data/val.txt'
-    # rnn_model = '/Users/jasmineli/Desktop/output/latest.pth'
-    # fc_model = '/Users/jasmineli/Desktop/output_noneck/best.pth'
-
-    # print(f'Starting...')
-    # print(f'loading model...')
-    # crnn= RecInfer(rnn_model)
-    # fconv = RecInfer(fc_model)
-    # print(f'building dataloader')
-    # # assert crnn.data_config == fconv.data_config
-    # loader = build_eval_dataloader(data_info, crnn.data_config)
-
-    # output_dir = None
-    # crnn_images, crnn_out, crnn_labels = crnn.predict(loader)
-    # crnn_out = [p[0][0] for p in crnn_out]
-    # crnn_stats = get_stats(crnn_out, {'labels': crnn_labels, 'images': crnn_images}, output_dir=output_dir)
-    # # accuracy = crnn_stats['accuracy']
-    # # print(f'\ntotal # of images to predict: {len(labels)}; accuracy: {accuracy}')
-
-    # fconv_images, fconv_out, fconv_labels = fconv.predict(loader)
-    # fconv_out = [p[0][0] for p in fconv_out]
-    # fconv_stats = get_stats(fconv_out, {'labels': fconv_labels, 'images': fconv_images}, output_dir=output_dir)
-
-    # fconv_idx_error = fconv_stats['idx_to_error']
-    # crnn_idx_error = crnn_stats['idx_to_error']
-    # for idx in fconv_idx_error:
-    #     if idx in crnn_idx_error:
-    #         direc = '/Users/jasmineli/Desktop/alpr/error_fconv-and-rnn/'
-    #         crnn_pred = crnn_out[idx]
-    #         fconv_pred = fconv_out[idx]
-    #         img_name = direc +str(idx) + '-' + fconv_pred + '-' + crnn_pred + '.jpg'
-    #         plt.imshow(fconv_idx_error[idx])
-    #         plt.savefig(img_name)
-    #     else:
-    #         direc = '/Users/jasmineli/Desktop/alpr/error_fconv-not-rnn/'
-    #         fconv_pred = fconv_out[idx]
-    #         img_name = direc + str(idx) + '-' + fconv_pred + '.jpg'
-    #         plt.imshow(fconv_idx_error[idx])
-    #         plt.savefig(img_name)
-
-    # for idx in crnn_idx_error:
-    #     if idx not in fconv_idx_error:
-    #         direc = '/Users/jasmineli/Desktop/alpr/error_rnn-not-fconv/'
-    #         crnn_pred = crnn_out[idx]
-    #         img_name = direc + str(idx) + '-' + crnn_pred + '.jpg'
-    #         plt.imshow(crnn_idx_error[idx])
-    #         plt.savefig(img_name)
