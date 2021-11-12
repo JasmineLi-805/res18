@@ -35,5 +35,5 @@ class ImgNetTextLineDataset(Dataset):
         dim = (256, 256)
         img = cv2.resize(img, dim)
         img = torch.tensor(img)
-        img = img.permute(1, 2, 0)
+        img = img.permute(2, 0, 1)
         return {'img': img, 'label': trans}
