@@ -38,7 +38,7 @@ class ModelLoader:
                     continue
                 output = self.model(batch_data['img'].to(self.device))
                 output = torch.nn.functional.softmax(output[0], dim=0)
-                output = output.cpu().numpy()
+                output = output.cpu()
                 images.extend(batch_data['img'])
                 predictions.extend([torch.argmax(txt) for txt in output])
                 labels.extend(batch_data['label'])
