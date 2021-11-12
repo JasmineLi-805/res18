@@ -1,3 +1,4 @@
+from os import DirEntry
 import cv2
 import torch
 import numpy as np
@@ -34,6 +35,6 @@ class ImgNetTextLineDataset(Dataset):
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         dim = (256, 256)
         img = cv2.resize(img, dim)
-        img = torch.tensor(img)
+        img = torch.cuda.FloatTensor(img)
         img = img.permute(2, 0, 1)
         return {'img': img, 'label': trans}
