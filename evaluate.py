@@ -19,7 +19,7 @@ class ModelLoader:
     def __init__(self, model):
         self.model = model
 
-        self.device = torch.device('cuda:0,1,2,3,4,5,6,7' if torch.cuda.is_available() else 'cpu')
+        self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
         self.model.to(self.device)
         self.model.eval()
 
